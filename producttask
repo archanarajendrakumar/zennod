@@ -1,0 +1,86 @@
+#product catalog
+products = {
+    "Product A": 20,
+    "Product B": 40,
+    "Product C": 50
+}
+
+#discount
+discount = {
+    "flat_10_discount": {"threshold": 200, "discount": 10},
+    "bulk_5_discount": {"threshold": 10, "discount": 0.05},
+    "bulk_10_discount": {"threshold": 20, "discount": 0.1},
+    "tiered_50_discount": {"quantity_threshold": 30, "single_product_threshold": 15, "discount": 0.5}
+}
+
+
+gift_wrap_fee=1
+shipping_fee=5
+
+product_quantity={}
+product_wrapped={}
+for item in products:
+    quantity = int(input(f"Enter the quantity of {item}: "))
+    wrapped=input(f"Is {item} wrapped as gift?(yes/No)")=="yes"
+    product_quantity[item]=quantity
+    product_wrapped[item]=wrapped
+
+# Calculate subtotal
+sub_total=0
+for item in products:
+    quantity=product_quantity[item]
+    price=products[item]
+    sub_total+=quantity*price
+
+
+# Calculate applicable discount
+applicable_discount=0
+discount_amount=0
+
+for i in discount:
+    if i=="flat_10_discount" and sub_total>discount[i]["threshold"]:
+        discount_amount=discount[i]["discount"]
+        applicable_discount=i
+    elif i=="bulk_5_discount":
+        for item in product_quantity:
+           if product_quantity[item]>discount[i]["threshold"]:
+              discount_amount=discount[i]["discount"]
+              applicable_discount=i
+              break
+    elif i=="bulk_10_discount" and sum(product_quantity.values())>discount[i]["threshold"]:
+        discount_amount=discount[i]["discount"]
+        applicable_discount=i
+    elif i=="tiered_50_discount" and sum(product_quantity.values()) >discount[i]["quantity_threshold"]:
+        for item in product_quantity:
+            if product_quantity[item]>discount[i]["single_product_threshold"]:
+                discount_amount=discount[i]["discount"]
+                applicable_discount=i
+                break
+
+# Calculate gift wrap fee and shipping fee
+gift_wrap_total=0
+shipping_total=0
+for item in products:
+    quantity=product_quantity[item]
+    if product_wrapped[item]:
+        gift_wrap_total+=quantity*gift_wrap_fee
+    shipping_total+=(quantity//10)*shipping_fee
+# Calculate total
+total=(sub_total-discount_amount)+gift_wrap_total+shipping_total
+
+#output
+print("Product Details")
+for item in products:
+    quantity = product_quantity[item]
+    price = products[item]
+    product_total = quantity * price
+    print(f"{item}: {quantity} x ${price} = ${product_total}")
+
+print(f"subtotal=${sub_total}")
+
+print(f"Discount applied ({applicable_discount}): ${ sub_total-discount_amount :.2f}")
+
+print(f"Gift wrap fee={gift_wrap_total}")
+print(f"Shipping fee={shipping_total}")
+
+print(f"Total amount={total}")
